@@ -8,4 +8,8 @@ int CALLBACK WinMain (
 )
 {
 
+  MessageBoxA(0, "Hello from windows", "my box",
+   MB_OK|MB_ICONINFORMATION);
+
+
 }
