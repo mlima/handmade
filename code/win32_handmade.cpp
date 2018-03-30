@@ -1,5 +1,17 @@
 #include <windows.h>
 
+#define internal static
+#define local_persist static
+#define global_variable static
+
+// TODO: this is a global for now.
+global_variable bool Running;
+
+internal void
+ResizeDIBSection(int Width, int Height)
+{
+}
+
 LRESULT CALLBACK 
 MainWindowCallback(HWND Window, UINT Message,WPARAM WParam, LPARAM LParam)
 {
@@ -8,30 +20,40 @@ MainWindowCallback(HWND Window, UINT Message,WPARAM WParam, LPARAM LParam)
 	{
 		case WM_SIZE: 
 		{
+			RECT ClientRect;
+			GetClientRect(Window, &ClientRect);
+			int Height = ClientRect.bottom - ClientRect.top;
+			int Width = ClientRect.right - ClientRect.left;
+			ResizeDIBSection(Width, Height);
 			OutputDebugStringA("WM_SIZE\n");
-		} break;
-		case WM_DESTROY: 
-		{
-			OutputDebugStringA("WM_DESTROY\n");
 		} break;
 		case WM_CLOSE: 
 		{
+			// TODO: handle this with a message to the user?
+			Running = false;
 			OutputDebugStringA("WM_CLOSE\n");
 		} break;
 		case WM_ACTIVATEAPP: 
 		{
 			OutputDebugStringA("WM_ACTIVATEAPP\n");
 		} break;
+		case WM_DESTROY: 
+		{
+			//TODO: Handle this as an error - recreate window?
+			Running = false;
+			OutputDebugStringA("WM_DESTROY\n");
+		} break;
 		case WM_PAINT:
 		{
 			OutputDebugStringA("WM_PAINT\n");
 			PAINTSTRUCT Paint;
 			HDC DeviceContext = BeginPaint(Window, &Paint);
+			Win32UpdateWindow();
 			int x = Paint.rcPaint.left;
 			int y = Paint.rcPaint.top;
 			int height = Paint.rcPaint.bottom - Paint.rcPaint.top;
 			int width = Paint.rcPaint.right - Paint.rcPaint.left;
-			static DWORD Operation = BLACKNESS;
+			local_persist DWORD Operation = BLACKNESS;
 			PatBlt(DeviceContext,x,y,width, height, Operation);
 			if (Operation == BLACKNESS) 
 			{
@@ -82,9 +104,10 @@ WinMain (HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CmdLine,int CmdShow)
 
 		if (WindowHandle) 
 		{
-			MSG Message;
-			for (;;)
+			Running = true;
+			while (Running)
 			{
+				MSG Message;
 				BOOL MessageResult = GetMessage(&Message, 0,0,0);
 				if (MessageResult > 0)
 				{
@@ -99,11 +122,11 @@ WinMain (HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CmdLine,int CmdShow)
 		}
 		else
 		{
-			// Logging
+			// TODO: Logging
 		}
 	}
 	else
 	{
-		// Logging
+		// TODO: Logging
 	}
 }
